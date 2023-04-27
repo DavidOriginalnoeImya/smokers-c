@@ -6,8 +6,6 @@ namespace Smokers
 {
     internal class Program
     {
-        private static List<Mutex> smokerMutexes = new List<Mutex> {new Mutex(), new Mutex(), new Mutex()};
-
         private static int component = -1;
         
         private static Random random = new Random();
@@ -44,8 +42,6 @@ namespace Smokers
         {
             while (true)
             {
-                smokerMutexes[smokerIndex].WaitOne();
-
                 if (smokerIndex == component)
                 {
                     component = -1;
@@ -56,8 +52,6 @@ namespace Smokers
                     
                     Console.WriteLine("Курильщик " + (smokerIndex + 1) + " закончил курить");
                 }
-                
-                smokerMutexes[smokerIndex].ReleaseMutex();
             }
         }
     }
