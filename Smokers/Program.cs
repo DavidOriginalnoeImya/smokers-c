@@ -6,9 +6,14 @@ namespace Smokers
 {
     internal class Program
     {
-        private static int component = -1;
-        
         private static Random random = new Random();
+
+        private static List<Semaphore> componentSemaphores = new List<Semaphore>
+        {
+            new Semaphore(0, 1), new Semaphore(0, 1), new Semaphore(0, 1)
+        };
+
+        private static Semaphore agentSemaphore = new Semaphore(0, 1);
         
         public static void Main(string[] args)
         {
@@ -29,12 +34,20 @@ namespace Smokers
         {
             while (true)
             {
-                if (component == -1)
+                int componentIndex = random.Next(0, 3);
+                
+                Console.WriteLine("Агент выкладывает компонент " + (componentIndex + 1));
+                
+                int work = 1;
+                
+                for (int workCount = 0; workCount < 1000000; ++workCount)
                 {
-                    component = random.Next(0, 3);
-                    
-                    Console.WriteLine("Агент выкладывает компонент " + (component + 1));
+                    work += work * workCount * 2 + (int) Math.Pow(workCount, workCount) * (int) Math.Pow(workCount, workCount);
                 }
+                
+                componentSemaphores[componentIndex].Release();
+
+                agentSemaphore.WaitOne();
             }
         }
         
@@ -42,16 +55,20 @@ namespace Smokers
         {
             while (true)
             {
-                if (smokerIndex == component)
+                componentSemaphores[smokerIndex].WaitOne();
+                    
+                Console.WriteLine("Курильщик " + (smokerIndex + 1) + " курит");
+                
+                int work = 1;
+                
+                for (int workCount = 0; workCount < 10000000; ++workCount)
                 {
-                    component = -1;
-                    
-                    Console.WriteLine("Курильщик " + (smokerIndex + 1) + " курит");
-                    
-                    Thread.Sleep(1000);
-                    
-                    Console.WriteLine("Курильщик " + (smokerIndex + 1) + " закончил курить");
+                    work += work * workCount * 2 + (int) Math.Pow(workCount, workCount) * (int) Math.Pow(workCount, workCount);
                 }
+                
+                Console.WriteLine("Курильщик " + (smokerIndex + 1) + " закончил курить");
+
+                agentSemaphore.Release();
             }
         }
     }
